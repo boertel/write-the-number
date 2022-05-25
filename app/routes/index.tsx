@@ -25,10 +25,10 @@ export default function Index() {
   const { speak, hasSpeech } = useSpeechSynthesis(
     language === "spanish"
       ? {
-          lang: "es-MX",
+          lang: LANGUAGES.spanish.locale,
           name: "Juan",
         }
-      : { lang: "fr-FR", name: "Thomas" }
+      : { lang: LANGUAGES.french.locale, name: "Thomas" }
   );
 
   function rand() {
@@ -94,10 +94,10 @@ export default function Index() {
               {LANGUAGES[language].label}
             </h1>
             <label htmlFor="guess" className="text-6xl font-bold flex my-2">
-              {number}
+              {new Intl.NumberFormat(LANGUAGES[language].locale).format(number)}
             </label>
             <select
-              className=" text-opacity-40 text-black bg-white bg-opacity-0"
+              className="text-opacity-40 text-black bg-white bg-opacity-0"
               onChange={(evt) => {
                 query.set("language", evt.target.value);
                 navigate(`${location.pathname}?${query.toString()}`);
@@ -142,7 +142,7 @@ export default function Index() {
               <em>{getSentenceIn(number)}</em>
             </p>
           ) : null}
-          <div className="mt-8">
+          <div className="mt-8 text-opacity-40 text-black transition-opacity hover:text-opacity-80">
             {hasSpeech ? (
               !withSound ? (
                 <button
@@ -167,7 +167,7 @@ export default function Index() {
           </div>
         </div>
         <div
-          className="grid gap-[1px] md:gap-1"
+          className="grid gap-[1px]"
           style={{ gridTemplateColumns: `repeat(${storage.length}, 1fr)` }}
         >
           {storage.map((result, index) => {
@@ -213,6 +213,7 @@ function EnterKey({ className }) {
 const LANGUAGES = {
   spanish: {
     label: "Escribe el numero",
+    locale: "es-MX",
     words: {
       1: "uno",
       2: "dos",
@@ -273,6 +274,7 @@ const LANGUAGES = {
   },
   french: {
     label: "Écris le nombre",
+    locale: "fr-FR",
     words: {
       1: "un",
       2: "deux",
@@ -357,5 +359,5 @@ function getWord(value: number, language, divider?: number): string {
 }
 
 function toSentence(language, value: number): string {
-  return getWord(value, language, 1000);
+  return getWord(value, language, 100000);
 }
