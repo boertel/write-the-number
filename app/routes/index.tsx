@@ -80,6 +80,7 @@ export default function Index() {
                 query.set("language", evt.target.value);
                 navigate(`${location.pathname}?${query.toString()}`);
               }}
+              value={language}
             >
               <option value="spanish">en Español</option>
               <option value="french">en Français</option>
