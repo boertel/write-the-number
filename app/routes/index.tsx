@@ -315,7 +315,7 @@ const LANGUAGES = {
       70: "setenta",
       80: "ochenta",
       90: "noventa",
-      100: "ciento",
+      100: ({ divider }) => (!!divider ? "cien" : "ciento"),
       200: "doscientos",
       300: "trescientos",
       400: "cuatrocientos",
@@ -409,7 +409,11 @@ function getWord(value: number, language, divider?: number): string {
   const { words, joinWith } = language;
   const found = words[value];
   if (found) {
-    return found;
+    if (typeof found === "function") {
+      return found({ divider });
+    } else {
+      return found;
+    }
   } else {
     if (divider > 1) {
       const quotient = ~~(value / divider);
