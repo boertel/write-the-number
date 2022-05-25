@@ -227,7 +227,7 @@ const LANGUAGES = {
       8000: "ocho mil",
       9000: "nueve mil",
     },
-    joinWith: " y ",
+    joinWith: ({ divider }) => (divider === 10 ? " y " : " "),
   },
   french: {
     label: "Écris le nombre",
@@ -273,6 +273,15 @@ const LANGUAGES = {
       79: "soixante-dix-neuf",
       80: "quatre-vingt",
       90: "quatre-vingt-dix",
+      91: "quatre-vingt-dix",
+      92: "quatre-vingt-douze",
+      93: "quatre-vingt-treize",
+      94: "quatre-vingt-quatorze",
+      95: "quatre-vingt-quinze",
+      96: "quatre-vingt-seize",
+      97: "quatre-vingt-dix-sept",
+      98: "quatre-vingt-dix-huit",
+      99: "quatre-vingt-dix-neuf",
       100: "cent",
       200: "deux-cents",
       300: "trois-cents",
@@ -284,7 +293,7 @@ const LANGUAGES = {
       900: "neuf-cents",
       1000: "mille",
     },
-    joinWith: "-",
+    joinWith: () => "-",
   },
 };
 
@@ -299,7 +308,8 @@ function getWord(value: number, language, divider?: number): string {
       const remainder = value % divider;
       const q = getWord(quotient * divider, language);
       const r = getWord(remainder, language, divider / 10);
-      const _joinWith = divider === 10 ? joinWith : " ";
+      console.log(remainder, divider, quotient);
+      const _joinWith = joinWith({ remainder, divider, remainder });
       return [q, r].filter((v) => v).join(_joinWith);
     }
   }
