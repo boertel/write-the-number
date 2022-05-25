@@ -45,7 +45,7 @@ export default function Index() {
       evt.preventDefault();
       if (submitCount.current === 0) {
         const answer = getSentenceIn(number);
-        const guess = evt.target.value.toLowerCase();
+        const guess = evt.target.value.toLowerCase().trim();
         setStatus(answer === guess ? "correct" : "wrong");
         setStorage([...storage, { answer, guess, time: new Date().getTime() }]);
         submitCount.current += 1;
@@ -158,7 +158,7 @@ function EnterKey({ className }) {
   return (
     <div
       className={cn(
-        "absolute top-0 bottom-0 right-0 flex h-full items-center px-2 text-black font-mono text-xs",
+        "absolute top-0 bottom-0 right-0 flex h-full items-center px-2 text-black font-mono text-xs pointer-events-none",
         className
       )}
     >

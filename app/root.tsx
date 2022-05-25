@@ -18,6 +18,11 @@ export const meta: MetaFunction = () => ({
   charset: "utf-8",
   title: "Write the number",
   viewport: "width=device-width,initial-scale=1",
+  "mobile-web-app-capable": "yes",
+  "apple-touch-fullscreen": "yes",
+  "apple-mobile-web-app-capable": "yes",
+  "apple-mobile-web-app-status-bar-style": "black",
+  "apple-mobile-web-app-title": "Write the number",
 });
 
 export default function App() {
