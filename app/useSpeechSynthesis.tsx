@@ -20,9 +20,7 @@ export function useSpeechSynthesis({
   useEffect(() => {
     if (!!window.speechSynthesis) {
       onVoicesChanged();
-      window.speechSynthesis.onvoiceschanged = function () {
-        onVoicesChanged;
-      };
+      window.speechSynthesis.onvoiceschanged = onVoicesChanged;
       return () => (window.speechSynthesis.onvoiceschanged = null);
     }
   }, [onVoicesChanged]);

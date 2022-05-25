@@ -1,7 +1,7 @@
-import { useRef, useEffect, useState } from "react";
+import { useMemo, useRef, useEffect, useState } from "react";
 import cn from "classnames";
 import { useLocation, useNavigate } from "react-router-dom";
-import { SoundHigh, SoundOff } from "iconoir-react";
+import { EyeEmpty, EyeOff, SoundHigh, SoundOff } from "iconoir-react";
 
 import { useStorage } from "../useStorage";
 import { useSpeechSynthesis } from "../useSpeechSynthesis";
@@ -19,7 +19,19 @@ export default function Index() {
 
   const limit = query.get("limit") || "1000";
   const language = query.get("language") || "spanish";
-  const withSound: boolean = query.get("sound") === "true";
+  const _verbs = query.getAll("verb");
+  const hasListen = _verbs.includes("listen");
+  const hasRead = _verbs.length === 0 ? true : _verbs.includes("read");
+  const verbs: {
+    listen: boolean;
+    read: boolean;
+  } = useMemo(() => {
+    return {
+      listen: hasListen,
+      read: hasRead,
+    };
+  }, [hasListen, hasRead]);
+
   const defaultNumber = query.get("number");
 
   const { speak, hasSpeech } = useSpeechSynthesis(
@@ -32,7 +44,7 @@ export default function Index() {
   );
 
   function rand() {
-    return getRandomInt(1, parseInt(limit, 10));
+    return `${getRandomInt(1, parseInt(limit, 10))}`;
   }
 
   const submitCount = useRef<number>(0);
@@ -41,13 +53,16 @@ export default function Index() {
   );
   const [number, setNumber] = useState(defaultNumber || rand());
   useEffect(() => {
-    if (defaultNumber) {
-      if (withSound && hasSpeech) {
-        speak(defaultNumber);
-      }
+    if (defaultNumber && verbs.read) {
       setNumber(defaultNumber);
     }
-  }, [withSound, defaultNumber, hasSpeech]);
+  }, [defaultNumber, verbs]);
+
+  useEffect(() => {
+    if (verbs.listen && hasSpeech) {
+      speak(number);
+    }
+  }, [number, verbs, hasSpeech]);
 
   const [storage, setStorage] = useStorage([]);
 
@@ -65,7 +80,11 @@ export default function Index() {
         setStorage([...storage, { answer, guess, time: new Date().getTime() }]);
         submitCount.current += 1;
       } else {
-        query.set("number", rand());
+        if (!verbs.read) {
+          setNumber(rand());
+        } else {
+          query.set("number", rand());
+        }
         navigate(`${location.pathname}?${query.toString()}`);
         submitCount.current = 0;
         setStatus("pending");
@@ -90,14 +109,25 @@ export default function Index() {
       <div className="max-w-prose h-full w-full mx-auto px-2 pt-4 flex flex-col flex-1 justify-between">
         <div>
           <div className="mb-4">
-            <h1 className="text-lg text-opacity-40 text-black">
+            <h1 className="text-lg text-opacity-40 text-black mx-[3px]">
               {LANGUAGES[language].label}
             </h1>
-            <label htmlFor="guess" className="text-6xl font-bold flex my-2">
-              {new Intl.NumberFormat(LANGUAGES[language].locale).format(number)}
+            <label
+              htmlFor="guess"
+              className="text-6xl font-bold flex my-2 font-mono"
+            >
+              {verbs.read || submitCount.current === 1 ? (
+                <>
+                  {new Intl.NumberFormat(LANGUAGES[language].locale).format(
+                    number
+                  )}
+                </>
+              ) : (
+                "??"
+              )}
             </label>
             <select
-              className="text-opacity-40 text-black bg-white bg-opacity-0"
+              className="text-opacity-40 text-black bg-white bg-opacity-0 text-lg"
               onChange={(evt) => {
                 query.set("language", evt.target.value);
                 navigate(`${location.pathname}?${query.toString()}`);
@@ -142,12 +172,16 @@ export default function Index() {
               <em>{getSentenceIn(number)}</em>
             </p>
           ) : null}
-          <div className="mt-8 text-opacity-40 text-black transition-opacity hover:text-opacity-80">
+          <div className=" mx-[3px] mt-8 text-opacity-40 text-black transition-opacity hover:text-opacity-80 flex gap-4">
             {hasSpeech ? (
-              !withSound ? (
+              !verbs.listen ? (
                 <button
                   onClick={() => {
-                    query.set("sound", "true");
+                    query.delete("verb");
+                    if (verbs.read) {
+                      query.append("verb", "read");
+                    }
+                    query.append("verb", "listen");
                     navigate(`${location.pathname}?${query.toString()}`);
                   }}
                 >
@@ -156,7 +190,12 @@ export default function Index() {
               ) : (
                 <button
                   onClick={() => {
-                    query.set("sound", "false");
+                    query.delete("verb");
+                    if (verbs.read) {
+                      query.append("verb", "read");
+                    } else {
+                      query.delete("number");
+                    }
                     navigate(`${location.pathname}?${query.toString()}`);
                   }}
                 >
@@ -164,6 +203,30 @@ export default function Index() {
                 </button>
               )
             ) : null}
+            {!verbs.read ? (
+              <button
+                onClick={() => {
+                  query.delete("verb");
+                  if (verbs.listen) {
+                    query.append("verb", "listen");
+                  }
+                  query.append("verb", "read");
+                  navigate(`${location.pathname}?${query.toString()}`);
+                }}
+              >
+                <EyeOff />
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  query.delete("verb");
+                  query.append("verb", "listen");
+                  navigate(`${location.pathname}?${query.toString()}`);
+                }}
+              >
+                <EyeEmpty />
+              </button>
+            )}
           </div>
         </div>
         <div
@@ -228,7 +291,7 @@ const LANGUAGES = {
       11: "once",
       12: "doce",
       13: "trece",
-      14: "catorze",
+      14: "catorce",
       15: "quince",
       16: "dieciséis",
       17: "diecisiete",
