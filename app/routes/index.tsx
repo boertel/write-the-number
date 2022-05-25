@@ -47,7 +47,7 @@ export default function Index() {
       }
       setNumber(defaultNumber);
     }
-  }, [withSound, defaultNumber]);
+  }, [withSound, defaultNumber, hasSpeech]);
 
   const [storage, setStorage] = useStorage([]);
 

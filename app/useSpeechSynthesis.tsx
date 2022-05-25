@@ -10,17 +10,22 @@ export function useSpeechSynthesis({
   const [hasSpeech, setHasSpeech] = useState<boolean>(false);
   const voice = useRef<SpeechSynthesisVoice | null>(null);
 
-  useEffect(() => {
-    setHasSpeech(!!window.speechSynthesis);
-  }, []);
-
-  useEffect(() => {
+  const onVoicesChanged = useCallback(() => {
     const voices = window.speechSynthesis.getVoices();
     voice.current =
-      voices.find((v) => {
-        return lang === v.lang && name === v.name;
-      }) || null;
+      voices.find((v) => lang === v.lang && name === v.name) || null;
+    setHasSpeech(true);
   }, [lang, name]);
+
+  useEffect(() => {
+    if (!!window.speechSynthesis) {
+      onVoicesChanged();
+      window.speechSynthesis.onvoiceschanged = function () {
+        onVoicesChanged;
+      };
+      return () => (window.speechSynthesis.onvoiceschanged = null);
+    }
+  }, [onVoicesChanged]);
 
   const speak = useCallback((text: string) => {
     const utterance = new SpeechSynthesisUtterance(text);
