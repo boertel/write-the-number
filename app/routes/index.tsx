@@ -29,7 +29,9 @@ export default function Index() {
   );
   const [number, setNumber] = useState(defaultNumber || rand());
   useEffect(() => {
-    setNumber(defaultNumber);
+    if (defaultNumber) {
+      setNumber(defaultNumber);
+    }
   }, [defaultNumber]);
 
   const [storage, setStorage] = useStorage([]);
