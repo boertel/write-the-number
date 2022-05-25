@@ -65,7 +65,7 @@ export default function Index() {
         "bg-gray-200": status === "pending",
       })}
     >
-      <div className="max-w-prose h-full w-full mx-auto px-8 pt-4 flex flex-col flex-1 justify-between">
+      <div className="max-w-prose h-full w-full mx-auto px-2 pt-4 flex flex-col flex-1 justify-between">
         <div>
           <div className="mb-4">
             <h1 className="text-lg text-opacity-40 text-black">
@@ -120,7 +120,7 @@ export default function Index() {
           ) : null}
         </div>
         <div
-          className="grid gap-1"
+          className="grid gap-[1px] md:gap-1"
           style={{ gridTemplateColumns: `repeat(${storage.length}, 1fr)` }}
         >
           {storage.map((result, index) => {
