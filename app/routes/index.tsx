@@ -221,6 +221,7 @@ export default function Index() {
                 onClick={() => {
                   query.delete("verb");
                   query.append("verb", "listen");
+                  query.delete("number");
                   navigate(`${location.pathname}?${query.toString()}`);
                 }}
               >
