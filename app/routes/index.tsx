@@ -45,7 +45,7 @@ export default function Index() {
       evt.preventDefault();
       if (submitCount.current === 0) {
         const answer = getSentenceIn(number);
-        const guess = evt.target.value;
+        const guess = evt.target.value.toLowerCase();
         setStatus(answer === guess ? "correct" : "wrong");
         setStorage([...storage, { answer, guess, time: new Date().getTime() }]);
         submitCount.current += 1;
@@ -97,6 +97,7 @@ export default function Index() {
             <textarea
               autoCorrect="false"
               spellCheck={false}
+              autoComplete="off"
               rows={1}
               readOnly={submitCount.current > 0}
               className={cn(
