@@ -1,8 +1,10 @@
 import { useRef, useEffect, useState } from "react";
 import cn from "classnames";
 import { useLocation, useNavigate } from "react-router-dom";
+import { SoundHigh, SoundOff } from "iconoir-react";
 
 import { useStorage } from "../useStorage";
+import { useSpeechSynthesis } from "../useSpeechSynthesis";
 
 function getRandomInt(min, max) {
   min = Math.ceil(min);
@@ -17,7 +19,17 @@ export default function Index() {
 
   const limit = query.get("limit") || "1000";
   const language = query.get("language") || "spanish";
+  const withSound: boolean = query.get("sound") === "true";
   const defaultNumber = query.get("number");
+
+  const { speak, hasSpeech } = useSpeechSynthesis(
+    language === "spanish"
+      ? {
+          lang: "es-MX",
+          name: "Juan",
+        }
+      : { lang: "fr-FR", name: "Thomas" }
+  );
 
   function rand() {
     return getRandomInt(1, parseInt(limit, 10));
@@ -30,9 +42,12 @@ export default function Index() {
   const [number, setNumber] = useState(defaultNumber || rand());
   useEffect(() => {
     if (defaultNumber) {
+      if (withSound && hasSpeech) {
+        speak(defaultNumber);
+      }
       setNumber(defaultNumber);
     }
-  }, [defaultNumber]);
+  }, [withSound, defaultNumber]);
 
   const [storage, setStorage] = useStorage([]);
 
@@ -127,6 +142,29 @@ export default function Index() {
               <em>{getSentenceIn(number)}</em>
             </p>
           ) : null}
+          <div className="mt-8">
+            {hasSpeech ? (
+              !withSound ? (
+                <button
+                  onClick={() => {
+                    query.set("sound", "true");
+                    navigate(`${location.pathname}?${query.toString()}`);
+                  }}
+                >
+                  <SoundOff />
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    query.set("sound", "false");
+                    navigate(`${location.pathname}?${query.toString()}`);
+                  }}
+                >
+                  <SoundHigh />
+                </button>
+              )
+            ) : null}
+          </div>
         </div>
         <div
           className="grid gap-[1px] md:gap-1"
@@ -312,7 +350,6 @@ function getWord(value: number, language, divider?: number): string {
       const remainder = value % divider;
       const q = getWord(quotient * divider, language);
       const r = getWord(remainder, language, divider / 10);
-      console.log(remainder, divider, quotient);
       const _joinWith = joinWith({ remainder, divider, remainder });
       return [q, r].filter((v) => v).join(_joinWith);
     }

@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  -webkit-overflow-scrolling: touch !important;
+  overflow: auto !important;
+  height: 100% !important;
+}
+

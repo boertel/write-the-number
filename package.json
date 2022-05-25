@@ -9,7 +9,7 @@
     "dev": "run-p dev:*",
     "dev:css": "npm run generate:css -- --watch",
     "dev:remix": "remix dev",
-    "generate:css": "npx tailwindcss -o ./app/tailwind.css"
+    "generate:css": "npx tailwindcss -i ./styles/tailwind.css -o ./app/tailwind.css"
   },
   "dependencies": {
     "@remix-run/node": "^1.5.1",
@@ -17,6 +17,7 @@
     "@remix-run/vercel": "^1.5.1",
     "@vercel/node": "^1.15.2",
     "classnames": "^2.3.1",
+    "iconoir-react": "^4.9.2",
     "prettier": "^2.6.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
