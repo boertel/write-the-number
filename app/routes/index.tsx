@@ -95,8 +95,9 @@ export default function Index() {
           </div>
           <div className="relative">
             <textarea
+              autoCapitalize="off"
               autoCorrect="false"
-              spellCheck={false}
+              spellCheck="false"
               autoComplete="off"
               rows={1}
               readOnly={submitCount.current > 0}
