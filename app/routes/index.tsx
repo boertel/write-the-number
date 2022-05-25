@@ -233,7 +233,7 @@ const LANGUAGES = {
       17: "diecisiete",
       18: "dieciocho",
       19: "diecinueve",
-      20: "viente",
+      20: "veinte",
       21: "veintiuno",
       22: "veintidos",
       23: "veintitres",
