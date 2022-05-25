@@ -183,6 +183,7 @@ export default function Index() {
                     }
                     query.append("verb", "listen");
                     navigate(`${location.pathname}?${query.toString()}`);
+                    textarea.current.focus();
                   }}
                 >
                   <SoundOff />
@@ -197,6 +198,7 @@ export default function Index() {
                       query.delete("number");
                     }
                     navigate(`${location.pathname}?${query.toString()}`);
+                    textarea.current.focus();
                   }}
                 >
                   <SoundHigh />
@@ -212,6 +214,7 @@ export default function Index() {
                   }
                   query.append("verb", "read");
                   navigate(`${location.pathname}?${query.toString()}`);
+                  textarea.current.focus();
                 }}
               >
                 <EyeOff />
@@ -223,6 +226,7 @@ export default function Index() {
                   query.append("verb", "listen");
                   query.delete("number");
                   navigate(`${location.pathname}?${query.toString()}`);
+                  textarea.current.focus();
                 }}
               >
                 <EyeEmpty />
