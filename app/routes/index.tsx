@@ -17,6 +17,7 @@ export default function Index() {
 
   const limit = query.get("limit") || "1000";
   const language = query.get("language") || "spanish";
+  const defaultNumber = query.get("number");
 
   function rand() {
     return getRandomInt(1, parseInt(limit, 10));
@@ -26,7 +27,10 @@ export default function Index() {
   const [status, setStatus] = useState<"pending" | "correct" | "wrong">(
     "pending"
   );
-  const [number, setNumber] = useState(rand());
+  const [number, setNumber] = useState(defaultNumber || rand());
+  useEffect(() => {
+    setNumber(defaultNumber);
+  }, [defaultNumber]);
 
   const [storage, setStorage] = useStorage([]);
 
@@ -44,7 +48,8 @@ export default function Index() {
         setStorage([...storage, { answer, guess, time: new Date().getTime() }]);
         submitCount.current += 1;
       } else {
-        setNumber(rand());
+        query.set("number", rand());
+        navigate(`${location.pathname}?${query.toString()}`);
         submitCount.current = 0;
         setStatus("pending");
         evt.target.value = "";
