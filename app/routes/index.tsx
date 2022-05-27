@@ -6,7 +6,7 @@ import { EyeEmpty, EyeOff, SoundHigh, SoundOff } from "iconoir-react";
 import { useStorage } from "../useStorage";
 import { useSpeechSynthesis } from "../useSpeechSynthesis";
 
-function getRandomInt(min, max) {
+function getRandomInt(min: number, max: number): number {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
@@ -66,8 +66,8 @@ export default function Index() {
 
   const [storage, setStorage] = useStorage([]);
 
-  function getSentenceIn(number) {
-    return toSentence(LANGUAGES[language], number);
+  function getSentenceIn(number: string) {
+    return toSentence(LANGUAGES[language], parseInt(number, 10));
   }
 
   const onKeyPress = (evt) => {
@@ -93,9 +93,11 @@ export default function Index() {
     }
   };
 
-  const textarea = useRef();
+  const textarea = useRef<HTMLTextAreaElement>();
   useEffect(() => {
-    textarea.current.focus();
+    if (textarea.current) {
+      textarea.current.focus();
+    }
   }, []);
 
   return (
@@ -183,7 +185,7 @@ export default function Index() {
                     }
                     query.append("verb", "listen");
                     navigate(`${location.pathname}?${query.toString()}`);
-                    textarea.current.focus();
+                    textarea.current?.focus();
                   }}
                 >
                   <SoundOff />
@@ -198,7 +200,7 @@ export default function Index() {
                       query.delete("number");
                     }
                     navigate(`${location.pathname}?${query.toString()}`);
-                    textarea.current.focus();
+                    textarea.current?.focus();
                   }}
                 >
                   <SoundHigh />
@@ -214,7 +216,7 @@ export default function Index() {
                   }
                   query.append("verb", "read");
                   navigate(`${location.pathname}?${query.toString()}`);
-                  textarea.current.focus();
+                  textarea.current?.focus();
                 }}
               >
                 <EyeOff />
@@ -226,7 +228,7 @@ export default function Index() {
                   query.append("verb", "listen");
                   query.delete("number");
                   navigate(`${location.pathname}?${query.toString()}`);
-                  textarea.current.focus();
+                  textarea.current?.focus();
                 }}
               >
                 <EyeEmpty />
@@ -234,34 +236,46 @@ export default function Index() {
             )}
           </div>
         </div>
-        <div
-          className="grid gap-[1px]"
-          style={{ gridTemplateColumns: `repeat(${storage.length}, 1fr)` }}
-        >
-          {storage.map((result, index) => {
-            const isCorrect = result.answer === result.guess;
-            return (
-              <div
-                key={index}
-                title={
-                  isCorrect
-                    ? result.answer
-                    : `${result.answer} <> ${result.guess}`
-                }
-                className={cn(
-                  "h-[6px] cursor-pointer",
-                  isCorrect ? "bg-lime-600" : "bg-red-600"
-                )}
-              />
-            );
-          })}
+        <div>
+          <div className="text-gray-400 text-xs mb-2">
+            {LANGUAGES[language].builtBy}{" "}
+            <a
+              href="https://ben.oertel.fr"
+              target="_blank"
+              className="underline hover:font-semibold"
+            >
+              Benjamin Oertel
+            </a>
+          </div>
+          <div
+            className="grid gap-[1px]"
+            style={{ gridTemplateColumns: `repeat(${storage.length}, 1fr)` }}
+          >
+            {storage.map((result, index: number) => {
+              const isCorrect = result.answer === result.guess;
+              return (
+                <div
+                  key={index}
+                  title={
+                    isCorrect
+                      ? result.answer
+                      : `${result.answer} <> ${result.guess}`
+                  }
+                  className={cn(
+                    "h-[6px] cursor-pointer",
+                    isCorrect ? "bg-lime-600" : "bg-red-600"
+                  )}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function EnterKey({ className }) {
+function EnterKey({ className }: { className: string }) {
   return (
     <div
       className={cn(
@@ -278,8 +292,20 @@ function EnterKey({ className }) {
   );
 }
 
-const LANGUAGES = {
+interface Language {
+  builtBy: string;
+  label: string;
+  locale: string;
+  words: Record<
+    number,
+    string | ((args: { divider?: number; remainder?: number }) => string)
+  >;
+  joinWith: (args: { divider?: number; remainder?: number }) => string;
+}
+
+const LANGUAGES: Record<string, Language> = {
   spanish: {
+    builtBy: "Construido por",
     label: "Escribe el numero",
     locale: "es-MX",
     words: {
@@ -341,6 +367,7 @@ const LANGUAGES = {
     joinWith: ({ divider }) => (divider === 10 ? " y " : " "),
   },
   french: {
+    builtBy: "Construit par",
     label: "Écris le nombre",
     locale: "fr-FR",
     words: {
@@ -409,7 +436,7 @@ const LANGUAGES = {
   },
 };
 
-function getWord(value: number, language, divider?: number): string {
+function getWord(value: number, language: Language, divider?: number): string {
   const { words, joinWith } = language;
   const found = words[value];
   if (found) {
@@ -418,18 +445,19 @@ function getWord(value: number, language, divider?: number): string {
     } else {
       return found;
     }
-  } else {
+  } else if (divider) {
     if (divider > 1) {
       const quotient = ~~(value / divider);
       const remainder = value % divider;
       const q = getWord(quotient * divider, language);
       const r = getWord(remainder, language, divider / 10);
-      const _joinWith = joinWith({ remainder, divider, remainder });
+      const _joinWith = joinWith({ remainder, divider });
       return [q, r].filter((v) => v).join(_joinWith);
     }
   }
+  return "";
 }
 
-function toSentence(language, value: number): string {
+function toSentence(language: Language, value: number): string {
   return getWord(value, language, 100000);
 }
