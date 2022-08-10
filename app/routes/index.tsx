@@ -93,6 +93,12 @@ export default function Index() {
     }
   };
 
+  const onKeyDown = (evt) => {
+    if (evt.key === "p" && evt.ctrlKey) {
+      speak(number);
+    }
+  };
+
   const textarea = useRef<HTMLTextAreaElement>();
   useEffect(() => {
     if (textarea.current) {
@@ -161,6 +167,7 @@ export default function Index() {
               id="guess"
               name="guess"
               onKeyPress={onKeyPress}
+              onKeyDown={onKeyDown}
               autoFocus={false}
             />
             <EnterKey
