@@ -8,7 +8,7 @@
     "build:remix": "remix build",
     "dev": "run-p dev:*",
     "dev:css": "npm run generate:css -- --watch",
-    "dev:remix": "remix dev",
+    "dev:remix": "PORT=3092 remix dev",
     "generate:css": "npx tailwindcss -i ./styles/tailwind.css -o ./app/tailwind.css"
   },
   "dependencies": {
