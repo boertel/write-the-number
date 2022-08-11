@@ -34,8 +34,6 @@ export default function Index() {
     };
   }, [hasListen, hasRead]);
 
-  const defaultNumber = query.get("number");
-
   const { speak, hasSpeech } = useSpeechSynthesis(
     language === "spanish"
       ? {
@@ -53,12 +51,15 @@ export default function Index() {
   const [status, setStatus] = useState<"pending" | "correct" | "wrong">(
     "pending"
   );
-  const [number, setNumber] = useState(defaultNumber || rand());
+
+  const defaultNumbers = query.getAll("number");
+  const firstNumber = defaultNumbers.pop();
+  const [number, setNumber] = useState(firstNumber || rand());
   useEffect(() => {
-    if (defaultNumber && verbs.read) {
-      setNumber(defaultNumber);
+    if (firstNumber && verbs.read) {
+      setNumber(firstNumber);
     }
-  }, [defaultNumber, verbs]);
+  }, [firstNumber, verbs]);
 
   useEffect(() => {
     if (verbs.listen && hasSpeech) {
@@ -85,7 +86,12 @@ export default function Index() {
         if (!verbs.read) {
           setNumber(rand());
         } else {
-          query.set("number", rand());
+          if (defaultNumbers.length) {
+            query.delete("number");
+            defaultNumbers.forEach((n) => query.append("number", n));
+          } else {
+            query.set("number", rand());
+          }
         }
         navigate(`${location.pathname}?${query.toString()}`);
         submitCount.current = 0;
@@ -178,7 +184,7 @@ export default function Index() {
               )}
             />
           </div>
-          {true || status === "wrong" ? (
+          {status === "wrong" ? (
             <p className="px-4 mt-2 text-xl">
               <em>{getSentenceIn(number)}</em>
             </p>

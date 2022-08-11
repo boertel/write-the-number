@@ -1,6 +1,6 @@
 import { assert, expect, test } from "vitest";
 
-import { LANGUAGES, toSentence } from "../toSentence";
+import { LANGUAGES, toSentence } from "../app/toSentence";
 
 const cases = [
   [1, "one", "uno"],
