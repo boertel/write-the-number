@@ -1,56 +1,41 @@
-import type { MetaFunction } from "@remix-run/node";
+import type { MetaFunction } from "@remix-run/cloudflare";
 import {
   Links,
-  LiveReload,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
 
-import type { LinksFunction } from "@remix-run/node"; // or "@remix-run/cloudflare"
+import "./tailwind.css";
 
-import styles from "./tailwind.css";
+export const meta: MetaFunction = () => {
+  return [{ title: "Write the number" }];
+};
 
-export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }];
-
-export const meta: MetaFunction = () => ({
-  charset: "utf-8",
-  title: "Write the number",
-  viewport: "width=device-width,initial-scale=1",
-  "mobile-web-app-capable": "yes",
-  "apple-touch-fullscreen": "yes",
-  "apple-mobile-web-app-capable": "yes",
-  "apple-mobile-web-app-status-bar-style": "black",
-  "apple-mobile-web-app-title": "Write the number",
-});
-
-export default function App() {
+export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-touch-fullscreen" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="apple-mobile-web-app-title" content="Write the number" />
         <Meta />
-        <Favicon emoji="🔢" />
         <Links />
       </head>
       <body>
-        <Outlet />
+        {children}
         <ScrollRestoration />
         <Scripts />
-        <LiveReload />
       </body>
     </html>
   );
 }
 
-function faviconTemplate(string, icon) {
-  return `<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22 style=%22${
-    process.env.NODE_ENV !== "production" ? "filter: hue-rotate(120deg);" : ""
-  }%22><text y=%221em%22 font-size=%2280%22>${icon}</text></svg>`.trim();
+export default function App() {
+  return <Outlet />;
 }
-
-const Favicon = ({ emoji }) => {
-  const svg = faviconTemplate`${emoji}`;
-  const href = `data:image/svg+xml,${svg}`;
-  return <link rel="icon" href={href} />;
-};

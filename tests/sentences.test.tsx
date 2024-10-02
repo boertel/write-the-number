@@ -1,4 +1,4 @@
-import { assert, expect, test } from "vitest";
+import { expect, test } from "vitest";
 
 import { LANGUAGES, toSentence } from "../app/toSentence";
 
