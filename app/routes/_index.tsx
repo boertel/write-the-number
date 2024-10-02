@@ -1,7 +1,7 @@
 import { useMemo, useRef, useEffect, useState } from "react";
 import cn from "classnames";
-import { useLocation, useNavigate } from "react-router-dom";
-import { EyeEmpty, EyeOff, SoundHigh, SoundOff } from "iconoir-react";
+import { useLocation, useNavigate } from "@remix-run/react";
+import { Eye, EyeClosed, SoundHigh, SoundOff } from "iconoir-react";
 
 import { useStorage } from "../useStorage";
 import { useSpeechSynthesis } from "../useSpeechSynthesis";
@@ -40,7 +40,7 @@ export default function Index() {
           lang: LANGUAGES.spanish.locale,
           name: "Juan",
         }
-      : { lang: LANGUAGES.french.locale, name: "Thomas" }
+      : { lang: LANGUAGES.french.locale, name: "Thomas" },
   );
 
   function rand() {
@@ -49,7 +49,7 @@ export default function Index() {
 
   const submitCount = useRef<number>(0);
   const [status, setStatus] = useState<"pending" | "correct" | "wrong">(
-    "pending"
+    "pending",
   );
 
   const defaultNumbers = query.getAll("number");
@@ -130,12 +130,12 @@ export default function Index() {
             </h1>
             <label
               htmlFor="guess"
-              className="text-6xl font-bold flex my-2 font-mono"
+              className="text-6xl font-bold flex my-2 font-mono text-black"
             >
               {verbs.read || submitCount.current === 1 ? (
                 <>
                   {new Intl.NumberFormat(LANGUAGES[language].locale).format(
-                    number
+                    number,
                   )}
                 </>
               ) : (
@@ -163,13 +163,13 @@ export default function Index() {
               rows={1}
               readOnly={submitCount.current > 0}
               className={cn(
-                "resize-none focus:outline-none w-full border-2 border-opacity-60 rounded-md bg-white bg-opacity-20 text-xl focus:ring-2 px-4 py-4",
+                "resize-none focus:outline-none w-full border-2 border-opacity-60 rounded-md bg-white bg-opacity-20 text-xl focus:ring-2 px-4 py-4 text-black",
                 {
                   "border-blue-400 ring-blue-400": status === "pending",
                   "border-lime-600 ring-lime-600": status === "correct",
                   "border-red-400 ring-red-800 line-through":
                     status === "wrong",
-                }
+                },
               )}
               ref={textarea}
               id="guess"
@@ -180,7 +180,7 @@ export default function Index() {
             />
             <EnterKey
               className={cn(
-                submitCount.current > 0 ? "opacity-20" : "opacity-0"
+                submitCount.current > 0 ? "opacity-20" : "opacity-0",
               )}
             />
           </div>
@@ -234,7 +234,7 @@ export default function Index() {
                   textarea.current?.focus();
                 }}
               >
-                <EyeOff />
+                <EyeClosed />
               </button>
             ) : (
               <button
@@ -246,7 +246,7 @@ export default function Index() {
                   textarea.current?.focus();
                 }}
               >
-                <EyeEmpty />
+                <Eye />
               </button>
             )}
           </div>
@@ -278,7 +278,7 @@ export default function Index() {
                   }
                   className={cn(
                     "h-[6px] cursor-pointer",
-                    isCorrect ? "bg-lime-600" : "bg-red-600"
+                    isCorrect ? "bg-lime-600" : "bg-red-600",
                   )}
                 />
               );
@@ -295,7 +295,7 @@ function EnterKey({ className }: { className: string }) {
     <div
       className={cn(
         "absolute top-0 bottom-0 right-0 flex h-full items-center px-2 text-black font-mono text-xs pointer-events-none",
-        className
+        className,
       )}
     >
       Press
