@@ -122,11 +122,6 @@ export default function Index() {
   const isReviewing = !!answer && !!number;
 
   const textarea = useRef<HTMLTextAreaElement | null>(null);
-  useEffect(() => {
-    if (textarea.current) {
-      textarea.current.focus();
-    }
-  }, []);
 
   return (
     <Form
@@ -198,7 +193,7 @@ export default function Index() {
               defaultValue={guess}
               onKeyPress={onKeyPress}
               onKeyDown={onKeyDown}
-              autoFocus={false}
+              autoFocus={true}
             />
             <EnterKey
               className={cn(isReviewing ? "opacity-20" : "opacity-0")}
