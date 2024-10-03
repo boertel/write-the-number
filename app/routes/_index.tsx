@@ -23,7 +23,7 @@ export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
   const qs = url.searchParams;
 
   const number = qs.get("number") as number | null;
-  const limit = parseInt(qs.get("limit") || "10", 10);
+  const limit = parseInt(qs.get("limit") || "10", 100);
   if (number === null) {
     qs.set("number", rand(limit).toString());
     return redirect(`/?${qs.toString()}`);
