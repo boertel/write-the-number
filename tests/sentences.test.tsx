@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 
 import { LANGUAGES, toSentence } from "../app/toSentence";
 
-const cases = [
+const cases: Array<[number, string, string]> = [
   [1, "one", "uno"],
   [2, "two", "dos"],
   [3, "three", "tres"],
