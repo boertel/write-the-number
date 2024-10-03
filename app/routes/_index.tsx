@@ -24,7 +24,6 @@ export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
 
   const number = qs.get("number") as number | null;
   const limit = parseInt(qs.get("limit") || "100", 10);
-  console.log({ number, limit });
   if (number === null) {
     qs.set("number", rand(limit).toString());
     return redirect(`/?${qs.toString()}`);
@@ -195,6 +194,7 @@ export default function Index() {
               ref={textarea}
               id="guess"
               name={isReviewing ? undefined : "guess"}
+              key={number}
               defaultValue={guess}
               onKeyPress={onKeyPress}
               onKeyDown={onKeyDown}
