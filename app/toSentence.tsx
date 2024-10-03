@@ -6,7 +6,11 @@ export interface Language {
     number,
     string | ((args: { divider?: number; remainder?: number }) => string)
   >;
-  joinWith: (args: { divider?: number; remainder?: number }) => string;
+  joinWith: (args: {
+    quotient?: number;
+    divider?: number;
+    remainder?: number;
+  }) => string;
 }
 
 export const LANGUAGES: Record<string, Language> = {
@@ -145,7 +149,7 @@ export const LANGUAGES: Record<string, Language> = {
 export function getWord(
   value: number,
   language: Language,
-  divider?: number
+  divider?: number,
 ): string {
   const { words, joinWith } = language;
   const found = words[value];
@@ -162,7 +166,7 @@ export function getWord(
     if (quotient > 1 && divider >= 1000) {
       // thousands behave differently 12_000 => "12 thousand"
       q = [getWord(quotient, language), getWord(divider, language)].join(
-        joinWith({ quotient, divider, remainder })
+        joinWith({ quotient, divider, remainder }),
       );
     } else {
       q = getWord(quotient * divider, language);

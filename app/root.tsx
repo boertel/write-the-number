@@ -17,6 +17,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
+        <Favicon emoji="🔢" />
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -38,4 +39,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return <Outlet />;
+}
+
+function Favicon({ emoji }: { emoji: string }) {
+  const style = "";
+  const href = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22 style=%22${style}%22><text y=%221em%22 font-size=%2280%22>${emoji}</text></svg>`;
+  return <link rel="icon" href={href} />;
 }

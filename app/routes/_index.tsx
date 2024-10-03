@@ -1,9 +1,13 @@
-import { useMemo, useRef, useEffect, useState } from "react";
+import { useRef, useEffect } from "react";
 import cn from "classnames";
-import { useLocation, useNavigate } from "@remix-run/react";
+import {
+  ClientLoaderFunctionArgs,
+  useLoaderData,
+  Form,
+  redirect,
+} from "@remix-run/react";
 import { Eye, EyeClosed, SoundHigh, SoundOff } from "iconoir-react";
 
-import { useStorage } from "../useStorage";
 import { useSpeechSynthesis } from "../useSpeechSynthesis";
 
 import { LANGUAGES, toSentence } from "../toSentence";
@@ -14,100 +18,110 @@ function getRandomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
 }
 
-export default function Index() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const query = new URLSearchParams(location.search);
+export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
+  const url = new URL(request.url);
+  const qs = url.searchParams;
 
-  const limit = query.get("limit") || "1000";
-  const language = query.get("language") || "spanish";
-  const _verbs = query.getAll("verb");
-  const hasListen = _verbs.includes("listen");
-  const hasRead = _verbs.length === 0 ? true : _verbs.includes("read");
-  const verbs: {
-    listen: boolean;
-    read: boolean;
-  } = useMemo(() => {
-    return {
-      listen: hasListen,
-      read: hasRead,
-    };
-  }, [hasListen, hasRead]);
+  const number = qs.get("number") as number | null;
+  const limit = parseInt(qs.get("limit") || "10", 10);
+  if (number === null) {
+    qs.set("number", rand(limit).toString());
+    return redirect(`/?${qs.toString()}`);
+  }
+
+  const verbs = qs.getAll("verb");
+
+  const language = (qs.get("language") || "spanish") as "french" | "spanish";
+  const guess = qs.get("guess") || undefined;
+  let status: "pending" | "correct" | "wrong" = "pending";
+  let answer = "";
+  let storage: Array<{ answer: string; guess: string; time: number }> =
+    JSON.parse(window.localStorage.getItem("db") || "[]");
+  if (guess) {
+    answer = getSentenceIn(language, number);
+    status = answer === guess ? "correct" : "wrong";
+    storage = [...storage, { answer, guess, time: new Date().getTime() }];
+    window.localStorage.setItem("db", JSON.stringify(storage));
+  }
+
+  return {
+    language,
+    storage,
+    listen: verbs.includes("listen"),
+    read: verbs.length === 0 ? true : verbs.includes("read"),
+    guess,
+    status,
+    answer,
+    number,
+    next: getNext(limit, number),
+    label: LANGUAGES[language].label,
+    locale: LANGUAGES[language].locale,
+    builtBy: LANGUAGES[language].builtBy,
+  };
+}
+
+function getSentenceIn(language: "french" | "spanish", number: number): string {
+  return toSentence(LANGUAGES[language], number);
+}
+
+function rand(limit: number): number {
+  return getRandomInt(1, limit);
+}
+
+function getNext(limit: number, current: number): number {
+  let next = rand(limit);
+  while (next === current) {
+    next = rand(limit);
+  }
+  return next;
+}
+
+export default function Index() {
+  const {
+    language,
+    listen,
+    read,
+    number,
+    status,
+    label,
+    locale,
+    builtBy,
+    answer,
+    guess,
+    next,
+    storage,
+  } = useLoaderData<typeof clientLoader>();
 
   const { speak, hasSpeech } = useSpeechSynthesis(
     language === "spanish"
       ? {
           lang: LANGUAGES.spanish.locale,
-          name: "Juan",
         }
       : { lang: LANGUAGES.french.locale, name: "Thomas" },
   );
 
-  function rand() {
-    return `${getRandomInt(1, parseInt(limit, 10))}`;
-  }
-
-  const submitCount = useRef<number>(0);
-  const [status, setStatus] = useState<"pending" | "correct" | "wrong">(
-    "pending",
-  );
-
-  const defaultNumbers = query.getAll("number");
-  const firstNumber = defaultNumbers.pop();
-  const [number, setNumber] = useState(firstNumber || rand());
   useEffect(() => {
-    if (firstNumber && verbs.read) {
-      setNumber(firstNumber);
+    if (listen && hasSpeech && number) {
+      speak(number.toString());
     }
-  }, [firstNumber, verbs]);
+  }, [number, listen, hasSpeech]);
 
-  useEffect(() => {
-    if (verbs.listen && hasSpeech) {
-      speak(number);
-    }
-  }, [number, verbs, hasSpeech]);
-
-  const [storage, setStorage] = useStorage([]);
-
-  function getSentenceIn(number: string) {
-    return toSentence(LANGUAGES[language], parseInt(number, 10));
-  }
-
-  const onKeyPress = (evt) => {
+  const onKeyPress = (evt: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (evt.key === "Enter") {
+      form.current?.requestSubmit();
       evt.preventDefault();
-      if (submitCount.current === 0) {
-        const answer = getSentenceIn(number);
-        const guess = evt.target.value.toLowerCase().trim();
-        setStatus(answer === guess ? "correct" : "wrong");
-        setStorage([...storage, { answer, guess, time: new Date().getTime() }]);
-        submitCount.current += 1;
-      } else {
-        if (!verbs.read) {
-          setNumber(rand());
-        } else {
-          if (defaultNumbers.length) {
-            query.delete("number");
-            defaultNumbers.forEach((n) => query.append("number", n));
-          } else {
-            query.set("number", rand());
-          }
-        }
-        navigate(`${location.pathname}?${query.toString()}`);
-        submitCount.current = 0;
-        setStatus("pending");
-        evt.target.value = "";
-      }
     }
   };
 
-  const onKeyDown = (evt) => {
-    if (evt.key === "p" && evt.ctrlKey) {
-      speak(number);
+  const onKeyDown = (evt: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (evt.ctrlKey && evt.key === "p") {
+      speak(number.toString());
     }
   };
+  const form = useRef<HTMLFormElement | null>(null);
+  const isReviewing = !!answer && !!number;
 
-  const textarea = useRef<HTMLTextAreaElement>();
+  const textarea = useRef<HTMLTextAreaElement | null>(null);
   useEffect(() => {
     if (textarea.current) {
       textarea.current.focus();
@@ -115,40 +129,46 @@ export default function Index() {
   }, []);
 
   return (
-    <div
+    <Form
+      onSubmit={() => {
+        if (isReviewing && textarea.current) {
+          textarea.current.value = "";
+        }
+      }}
       className={cn("bg-gray-200 h-screen pt-8", {
         "bg-lime-400": status === "correct",
-        "bg-red-500": status === "wrong",
+        "bg-red-400": status === "wrong",
         "bg-gray-200": status === "pending",
       })}
+      ref={form}
     >
       <div className="max-w-prose h-full w-full mx-auto px-2 pt-4 flex flex-col flex-1 justify-between">
         <div>
           <div className="mb-4">
             <h1 className="text-lg text-opacity-40 text-black mx-[3px]">
-              {LANGUAGES[language].label}
+              {label}
             </h1>
+            <input
+              type="hidden"
+              name="number"
+              defaultValue={isReviewing ? next : number}
+            />
             <label
               htmlFor="guess"
               className="text-6xl font-bold flex my-2 font-mono text-black"
             >
-              {verbs.read || submitCount.current === 1 ? (
-                <>
-                  {new Intl.NumberFormat(LANGUAGES[language].locale).format(
-                    number,
-                  )}
-                </>
+              {read || isReviewing ? (
+                <>{new Intl.NumberFormat(locale).format(number)}</>
               ) : (
                 "??"
               )}
             </label>
             <select
               className="text-opacity-40 text-black bg-white bg-opacity-0 text-lg"
-              onChange={(evt) => {
-                query.set("language", evt.target.value);
-                navigate(`${location.pathname}?${query.toString()}`);
+              name="language"
+              onChange={() => {
+                form.current?.requestSubmit();
               }}
-              value={language}
             >
               <option value="spanish">en Español</option>
               <option value="french">en Français</option>
@@ -161,7 +181,7 @@ export default function Index() {
               spellCheck="false"
               autoComplete="off"
               rows={1}
-              readOnly={submitCount.current > 0}
+              readOnly={isReviewing}
               className={cn(
                 "resize-none focus:outline-none w-full border-2 border-opacity-60 rounded-md bg-white bg-opacity-20 text-xl focus:ring-2 px-4 py-4 text-black",
                 {
@@ -173,87 +193,63 @@ export default function Index() {
               )}
               ref={textarea}
               id="guess"
-              name="guess"
+              name={isReviewing ? undefined : "guess"}
+              defaultValue={guess}
               onKeyPress={onKeyPress}
               onKeyDown={onKeyDown}
               autoFocus={false}
             />
             <EnterKey
-              className={cn(
-                submitCount.current > 0 ? "opacity-20" : "opacity-0",
-              )}
+              className={cn(isReviewing ? "opacity-20" : "opacity-0")}
             />
           </div>
           {status === "wrong" ? (
             <p className="px-4 mt-2 text-xl">
-              <em>{getSentenceIn(number)}</em>
+              <em>{answer}</em>
             </p>
           ) : null}
           <div className=" mx-[3px] mt-8 text-opacity-40 text-black transition-opacity hover:text-opacity-80 flex gap-4">
             {hasSpeech ? (
-              !verbs.listen ? (
-                <button
-                  onClick={() => {
-                    query.delete("verb");
-                    if (verbs.read) {
-                      query.append("verb", "read");
-                    }
-                    query.append("verb", "listen");
-                    navigate(`${location.pathname}?${query.toString()}`);
-                    textarea.current?.focus();
-                  }}
-                >
-                  <SoundOff />
-                </button>
-              ) : (
-                <button
-                  onClick={() => {
-                    query.delete("verb");
-                    if (verbs.read) {
-                      query.append("verb", "read");
-                    } else {
-                      query.delete("number");
-                    }
-                    navigate(`${location.pathname}?${query.toString()}`);
-                    textarea.current?.focus();
-                  }}
-                >
-                  <SoundHigh />
-                </button>
-              )
+              <div>
+                <label className="">
+                  <input
+                    aria-label="Listen"
+                    aria-hidden="true"
+                    className="peer hidden"
+                    type="checkbox"
+                    name="verb"
+                    value="listen"
+                    defaultChecked={listen}
+                    onChange={() => form.current?.requestSubmit()}
+                  />
+                  <SoundOff className="block peer-[:checked]:hidden" />
+                  <SoundHigh className="hidden peer-[:checked]:block" />
+                </label>
+              </div>
             ) : null}
-            {!verbs.read ? (
-              <button
-                onClick={() => {
-                  query.delete("verb");
-                  if (verbs.listen) {
-                    query.append("verb", "listen");
-                  }
-                  query.append("verb", "read");
-                  navigate(`${location.pathname}?${query.toString()}`);
-                  textarea.current?.focus();
-                }}
-              >
-                <EyeClosed />
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  query.delete("verb");
-                  query.append("verb", "listen");
-                  query.delete("number");
-                  navigate(`${location.pathname}?${query.toString()}`);
-                  textarea.current?.focus();
-                }}
-              >
-                <Eye />
-              </button>
-            )}
+            {listen ? (
+              <div>
+                <label className="">
+                  <input
+                    aria-label="Read"
+                    className="peer hidden"
+                    aria-hidden="true"
+                    type="checkbox"
+                    name="verb"
+                    value="read"
+                    defaultChecked={read}
+                    onChange={() => form.current?.requestSubmit()}
+                  />
+                  <EyeClosed className="block peer-[:checked]:hidden" />
+                  <Eye className="hidden peer-[:checked]:block" />
+                </label>
+              </div>
+            ) : null}
           </div>
         </div>
         <div>
           <div className="text-gray-400 text-xs mb-2">
-            {LANGUAGES[language].builtBy}{" "}
+            {builtBy}{" "}
             <a
               href="https://ben.oertel.fr"
               target="_blank"
@@ -286,7 +282,7 @@ export default function Index() {
           </div>
         </div>
       </div>
-    </div>
+    </Form>
   );
 }
 
