@@ -18,6 +18,13 @@ function getRandomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
 }
 
+type StorageItem = {
+  number: number;
+  answer: string;
+  guess: string;
+  time: number;
+};
+
 export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
   const url = new URL(request.url);
   const qs = url.searchParams;
@@ -35,12 +42,16 @@ export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
   const guess = qs.get("guess") || undefined;
   let status: "pending" | "correct" | "wrong" = "pending";
   let answer = "";
-  let storage: Array<{ answer: string; guess: string; time: number }> =
-    JSON.parse(window.localStorage.getItem("db") || "[]");
+  let storage: Array<StorageItem> = JSON.parse(
+    window.localStorage.getItem("db") || "[]",
+  );
   if (guess) {
     answer = getSentenceIn(language, number);
     status = answer === guess ? "correct" : "wrong";
-    storage = [...storage, { answer, guess, time: new Date().getTime() }];
+    storage = [
+      ...storage,
+      { answer, guess, number, time: new Date().getTime() },
+    ];
     window.localStorage.setItem("db", JSON.stringify(storage));
   }
 
@@ -74,6 +85,10 @@ function getNext(limit: number, current: number): number {
     next = rand(limit);
   }
   return next;
+}
+
+function findGroupOfTen(num: number): number {
+  return Math.floor(num / 10) * 10;
 }
 
 export default function Index() {
@@ -122,6 +137,15 @@ export default function Index() {
   const isReviewing = !!answer && !!number;
 
   const textarea = useRef<HTMLTextAreaElement | null>(null);
+
+  const mistakes = storage
+    .filter((result) => result.answer !== result.guess)
+    .reduce<Record<number, StorageItem[]>>((acc, item) => {
+      const ten = findGroupOfTen(item.number);
+      acc[ten] ??= [];
+      acc[ten].push(item);
+      return acc;
+    }, {});
 
   return (
     <Form
@@ -255,28 +279,45 @@ export default function Index() {
               Benjamin Oertel
             </a>
           </div>
-          <div
-            className="grid gap-[1px]"
-            style={{ gridTemplateColumns: `repeat(${storage.length}, 1fr)` }}
-          >
-            {storage.map((result, index: number) => {
-              const isCorrect = result.answer === result.guess;
-              return (
-                <div
-                  key={index}
-                  title={
-                    isCorrect
-                      ? result.answer
-                      : `${result.answer} <> ${result.guess}`
-                  }
-                  className={cn(
-                    "h-[6px] cursor-pointer",
-                    isCorrect ? "bg-lime-600" : "bg-red-600",
-                  )}
-                />
-              );
-            })}
-          </div>
+          <details>
+            <summary
+              className="grid gap-[1px]"
+              style={{ gridTemplateColumns: `repeat(${storage.length}, 1fr)` }}
+            >
+              {storage.map((result, index: number) => {
+                const isCorrect = result.answer === result.guess;
+                return (
+                  <div
+                    key={index}
+                    title={
+                      isCorrect
+                        ? result.answer
+                        : `${result.answer} <> ${result.guess}`
+                    }
+                    className={cn(
+                      "h-[6px] cursor-pointer",
+                      isCorrect ? "bg-lime-600" : "bg-red-600",
+                    )}
+                  />
+                );
+              })}
+            </summary>
+            <ul className="py-2">
+              <li>Main mistakes were:</li>
+              {Object.keys(mistakes)
+                .sort((a, z) => mistakes[z].length - mistakes[a].length)
+                .map((ten) => {
+                  return (
+                    <li key={ten}>
+                      {ten}:{" "}
+                      {mistakes[ten].map(({ number }) => (
+                        <span className={number}>{number}, </span>
+                      ))}
+                    </li>
+                  );
+                })}
+            </ul>
+          </details>
         </div>
       </div>
     </Form>
