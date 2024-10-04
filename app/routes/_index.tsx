@@ -130,17 +130,19 @@ export default function Index() {
           textarea.current.value = "";
         }
       }}
-      className={cn("bg-gray-200 h-screen pt-8", {
-        "bg-lime-400": status === "correct",
-        "bg-red-400": status === "wrong",
-        "bg-gray-200": status === "pending",
-      })}
+      className={cn(
+        "bg-gray-200 dark:bg-neutral-950 text-black dark:text-white h-screen pt-8 transition-colors",
+        {
+          "bg-lime-400 dark:bg-lime-900": status === "correct",
+          "bg-red-400 dark:bg-red-900": status === "wrong",
+        },
+      )}
       ref={form}
     >
       <div className="max-w-prose h-full w-full mx-auto px-2 pt-4 flex flex-col flex-1 justify-between">
         <div>
           <div className="mb-4">
-            <h1 className="text-lg text-opacity-40 text-black mx-[3px]">
+            <h1 className="text-lg text-black/40 dark:text-white/40 mx-1">
               {label}
             </h1>
             <input
@@ -150,7 +152,7 @@ export default function Index() {
             />
             <label
               htmlFor="guess"
-              className="text-6xl font-bold flex my-2 font-mono text-black"
+              className="text-6xl font-bold flex my-2 font-mono"
             >
               {read || isReviewing ? (
                 <>{new Intl.NumberFormat(locale).format(number)}</>
@@ -159,7 +161,7 @@ export default function Index() {
               )}
             </label>
             <select
-              className="text-opacity-40 text-black bg-white bg-opacity-0 text-lg"
+              className="text-black/40 dark:text-white/40 bg-transparent bg-opacity-0 text-lg"
               name="language"
               onChange={() => {
                 form.current?.requestSubmit();
@@ -178,11 +180,12 @@ export default function Index() {
               rows={1}
               readOnly={isReviewing}
               className={cn(
-                "resize-none focus:outline-none w-full border-2 border-opacity-60 rounded-md bg-white bg-opacity-20 text-xl focus:ring-2 px-4 py-4 text-black",
+                "resize-none w-full border-2 border-blue-600/60 rounded-md bg-white bg-opacity-10 text-xl transition-all",
+                "focus:outline-none ring-blue-600/60 focus:ring-4 px-4 py-4",
                 {
-                  "border-blue-400 ring-blue-400": status === "pending",
-                  "border-lime-600 ring-lime-600": status === "correct",
-                  "border-red-400 ring-red-800 line-through":
+                  "border-blue-600/60 ring-blue-400": status === "pending",
+                  "border-lime-600/60 ring-lime-600/60": status === "correct",
+                  "border-red-600/60 ring-red-600/60 line-through":
                     status === "wrong",
                 },
               )}
@@ -196,15 +199,13 @@ export default function Index() {
               autoFocus={true}
             />
             <EnterKey
-              className={cn(isReviewing ? "opacity-20" : "opacity-0")}
+              className={cn(isReviewing ? "opacity-40" : "opacity-0")}
             />
           </div>
-          {status === "wrong" ? (
-            <p className="px-4 mt-2 text-xl">
-              <em>{answer}</em>
-            </p>
-          ) : null}
-          <div className=" mx-[3px] mt-8 text-opacity-40 text-black transition-opacity hover:text-opacity-80 flex gap-4">
+          <p className="px-4 mt-2 text-xl">
+            {status === "wrong" ? <em>{answer}</em> : <>&nbsp;</>}
+          </p>
+          <div className="mx-1 mt-8 text-black/40 dark:text-white/40 transition-opacity hover:text-opacity-80 flex gap-4">
             {hasSpeech ? (
               <div>
                 <label className="">
@@ -244,7 +245,7 @@ export default function Index() {
           </div>
         </div>
         <div>
-          <div className="text-gray-400 text-xs mb-2">
+          <div className="text-black/40 dark:text-white/40 text-xs mb-2">
             {builtBy}{" "}
             <a
               href="https://ben.oertel.fr"
@@ -286,12 +287,13 @@ function EnterKey({ className }: { className: string }) {
   return (
     <div
       className={cn(
-        "absolute top-0 bottom-0 right-0 flex h-full items-center px-2 text-black font-mono text-xs pointer-events-none",
+        "absolute top-0 bottom-0 right-0 flex h-full items-center px-2",
+        "text-black dark:text-white font-mono text-xs pointer-events-none",
         className,
       )}
     >
       Press
-      <div className="border px-[3px] border-black rounded-[3px] mx-[1ch]">
+      <div className="border px-[3px] border-black dark:border-white rounded-[3px] mx-[1ch]">
         Return
       </div>{" "}
       to continue
