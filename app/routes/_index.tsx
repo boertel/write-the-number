@@ -155,10 +155,11 @@ export default function Index() {
         }
       }}
       className={cn(
-        "bg-gray-200 dark:bg-neutral-950 text-black dark:text-white h-screen pt-8 transition-colors",
+        "text-black dark:text-white h-screen pt-8 transition-colors",
         {
           "bg-lime-400 dark:bg-lime-900": status === "correct",
           "bg-red-400 dark:bg-red-900": status === "wrong",
+          "bg-gray-200 dark:bg-neutral-950": status === "pending",
         },
       )}
       ref={form}
